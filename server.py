@@ -842,6 +842,10 @@ if __name__ == "__main__":
     transport = os.environ.get("MCP_TRANSPORT", "stdio")
     if transport == "http":
         port = int(os.environ.get("PORT", 8000))
-        mcp.run(transport="streamable-http", host="0.0.0.0", port=port)
+        secret = os.environ.get("MCP_SECRET")
+        if not secret or len(secret) < 20:
+            print("FATAL: MCP_SECRET env var required (20+ characters).", file=sys.stderr)
+            sys.exit(1)
+        mcp.run(transport="streamable-http", host="0.0.0.0", port=port, path=f"/{secret}/mcp")
     else:
         mcp.run()
