@@ -442,6 +442,24 @@ def get_comments(
 
 
 @mcp.tool()
+def send_private_reply(
+    comment_id: Annotated[str, Field(description="Comment ID from get_comments")],
+    message: Annotated[str, Field(min_length=1, max_length=1000, description="DM text sent privately to the commenter")],
+) -> dict:
+    """Send a private DM to the person who left a comment (Instagram Private Replies).
+
+    THIS IS A WRITE OPERATION. Works once per comment, within 7 days of the comment.
+    """
+    payload = {"recipient": {"comment_id": comment_id}, "message": {"text": message}}
+    with _client() as client:
+        resp = client.post(
+            f"{GRAPH}{DM_BASE}/messages",
+            json=payload,
+            params={"access_token": ACCESS_TOKEN},
+        )
+        data = _check(resp, "send_private_reply")
+        return {"message_id": data.get("message_id"), "comment_id": comment_id}
+@mcp.tool()
 def reply_to_comment(
     comment_id: Annotated[str, Field(description="Comment ID from get_comments")],
     message: Annotated[str, Field(min_length=1, max_length=2200, description="Reply text")],
